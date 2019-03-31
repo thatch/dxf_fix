@@ -11,4 +11,4 @@ Requirements:
 
 ## Usage
 
-`dxf_fix in.dxf` will wriite `in.dxf.new`
+`dxf_fix in.dxf [ -o out.dxf ]` will write `out.dxf` if provided, otherwise `in.dxf.new`
