@@ -19,7 +19,7 @@ setup(
     version=version,
     author="Tim Hatch",
     author_email="tim@timhatch.com",
-    url="https://github.com/thatach/dxf_fix",
+    url="https://github.com/thatch/dxf_fix",
     license="BSD",
     packages=("dxf_fix",),
     setup_requires=["setuptools"],

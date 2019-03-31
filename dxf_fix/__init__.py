@@ -7,6 +7,7 @@ import ezdxf
 
 __version__ = "0.1"
 
+
 class Stitcher(object):
     def __init__(self, input_name, output_name):
         self.old = ezdxf.readfile(input_name)
@@ -20,41 +21,47 @@ class Stitcher(object):
         # randomly ordered.
 
         stats = {
-            'last_match': 0, 'insert': 0, 'random_order': 0, 'stitch_reversed':
-            0, 'approx_match': 0}
+            "last_match": 0,
+            "insert": 0,
+            "random_order": 0,
+            "stitch_reversed": 0,
+            "approx_match": 0,
+        }
 
         self.load_partial_loops()
 
     def load_partial_loops(self):
         t0 = time.time()
-        for line in self.old.modelspace().query('LINE'):
+        for line in self.old.modelspace().query("LINE"):
             for i, p in enumerate(self.partial_loops):
                 if p[-1] == line.dxf.start:
                     p.append(line.dxf.end)
-                    #if i == 0:
+                    # if i == 0:
                     #    stats['last_match'] += 1
                     break
             else:
                 self.partial_loops.insert(0, [line.dxf.start, line.dxf.end])
-                #stats['insert'] += 1
+                # stats['insert'] += 1
         t1 = time.time()
-        print("Grouped segments in", t1-t0)
+        print("Grouped segments in", t1 - t0)
 
     def promote_closed_loops(self):
         t0 = time.time()
-        for i in range(len(self.partial_loops)-1, -1, -1):
-            if (self.partial_loops[i][0] == self.partial_loops[i][-1] and
-                len(self.partial_loops[i]) > 2):
+        for i in range(len(self.partial_loops) - 1, -1, -1):
+            if (
+                self.partial_loops[i][0] == self.partial_loops[i][-1]
+                and len(self.partial_loops[i]) > 2
+            ):
                 self.closed_loops.append(self.partial_loops.pop(i))
         t1 = time.time()
-        print("promote", t1-t0)
+        print("promote", t1 - t0)
 
     def promote_circles(self):
         """Promotes closed loops that are made of almost identical length
         segments to be circles based on the *point* distance (matching openscad
         behavior for polygonal approximations."""
 
-        for i in range(len(self.closed_loops)-1, -1, -1):
+        for i in range(len(self.closed_loops) - 1, -1, -1):
             c = find_circle_center(self.closed_loops[i])
             print("closed loops", len(self.closed_loops[i]), "center", c)
             if c is not None:
@@ -62,16 +69,14 @@ class Stitcher(object):
                 self.new.modelspace().add_circle(c, r)
                 del self.closed_loops[i]
 
-
     def reconstruct_loops(self):
         t0 = time.time()
-        for i in range(len(self.partial_loops)-1):
-            for j in range(len(self.partial_loops)-1, i, -1):
+        for i in range(len(self.partial_loops) - 1):
+            for j in range(len(self.partial_loops) - 1, i, -1):
                 if self.partial_loops[i][-1] == self.partial_loops[j][0]:
                     self.partial_loops[i].extend(self.partial_loops.pop(j))
         t1 = time.time()
-        print("reconstruct", t1-t0)
-
+        print("reconstruct", t1 - t0)
 
     """
 
@@ -106,7 +111,6 @@ class Stitcher(object):
         print partial_loops[0]
 
     """
-
 
     def save(self):
         for c in self.closed_loops:
@@ -150,11 +154,11 @@ def bounding_box_intersect(b1, b2):
 def dist(pt1, pt2):
     dx = pt2[0] - pt1[0]
     dy = pt2[1] - pt1[1]
-    return ((dx*dx)+(dy*dy))**0.5
+    return ((dx * dx) + (dy * dy)) ** 0.5
 
 
 def close(a, b, e=0.01):
-    return abs(a-b) < e
+    return abs(a - b) < e
 
 
 def find_arc_center(pts, start):
@@ -178,9 +182,9 @@ def find_arc_center(pts, start):
     if start < len(pts) - 2:
         return None
 
-    ideal_dist = dist(pts[start+1], pts[start+2])
+    ideal_dist = dist(pts[start + 1], pts[start + 2])
     i = start + 2
-    while i < len(pts) and close(ideal_dist, dist(pts[i], pts[i+1])):
+    while i < len(pts) and close(ideal_dist, dist(pts[i], pts[i + 1])):
         end = i + 1
         i += 1
 
@@ -193,8 +197,7 @@ def find_circle_center(polyline):
 
     if len(polyline) % 2 == 1:
         box = boundingbox(polyline)
-        center = ((box[0] + box[2]) / 2,
-                  (box[1] + box[3]) / 2)
+        center = ((box[0] + box[2]) / 2, (box[1] + box[3]) / 2)
 
         dists = [dist(center, pt) for pt in polyline[:-1]]
         m, n = min(dists), max(dists)
@@ -210,12 +213,12 @@ def main(args=None):
     if args is None:
         args = sys.argv[1:]
 
-    s = Stitcher(args[0], args[0] + '.new.dxf')
+    s = Stitcher(args[0], args[0] + ".new.dxf")
     s.reconstruct_loops()
     s.promote_closed_loops()
     s.promote_circles()
     s.save()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
