@@ -2,6 +2,7 @@ from __future__ import print_function
 
 import sys
 import time
+from optparse import OptionParser
 
 import ezdxf
 
@@ -210,10 +211,15 @@ def find_circle_center(polyline):
 
 
 def main(args=None):
-    if args is None:
-        args = sys.argv[1:]
+    parser = OptionParser()
+    parser.add_option("-o", "--output-file", action="store", help="Name of output file")
+    (options, args) = parser.parse_args()
 
-    s = Stitcher(args[0], args[0] + ".new.dxf")
+    if not args:
+        print("Input filename is required")
+        sys.exit(1)
+
+    s = Stitcher(args[0], options.output_file or (args[0] + ".new.dxf"))
     s.reconstruct_loops()
     s.promote_closed_loops()
     s.promote_circles()
